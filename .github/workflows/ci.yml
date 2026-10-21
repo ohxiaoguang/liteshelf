@@ -1,0 +1,37 @@
+name: CI
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    # Confirmed GitHub-hosted Apple Silicon image. Override to another hosted macOS image if needed.
+    runs-on: ${{ vars.MACOS_RUNNER || 'xcode-27' }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Check installed toolchain
+        run: ./scripts/check-toolchain.sh
+      - name: Unit tests
+        run: >-
+          xcodebuild -project LiteShelf.xcodeproj -scheme LiteShelf
+          -configuration Debug -destination 'platform=macOS,arch=arm64'
+          -derivedDataPath build/TestData -resultBundlePath build/Tests.xcresult
+          CODE_SIGNING_ALLOWED=NO test
+      - name: Release build and DMG smoke test
+        run: ./scripts/build-dmg.sh 1.0.0
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-results
+          path: build/Tests.xcresult
+          if-no-files-found: ignore

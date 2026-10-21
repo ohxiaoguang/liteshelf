@@ -1,0 +1,112 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Test build version (no v prefix). Manual runs never publish a release.'
+        default: '1.0.0'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  package:
+    runs-on: ${{ vars.MACOS_RUNNER || 'xcode-27' }}
+    timeout-minutes: 90
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      notarized: ${{ steps.package.outputs.notarized }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Validate version
+        id: version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == push ]]; then
+            [[ "$REF_NAME" == v* ]] || exit 1
+            version=${REF_NAME#v}
+          else
+            version=$INPUT_VERSION
+          fi
+          [[ "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || {
+            echo 'error: Only vMAJOR.MINOR.PATCH release tags are supported.' >&2; exit 1;
+          }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Check installed toolchain
+        run: ./scripts/check-toolchain.sh
+      - name: Test before packaging
+        run: >-
+          xcodebuild -project LiteShelf.xcodeproj -scheme LiteShelf
+          -configuration Debug -destination 'platform=macOS,arch=arm64'
+          -derivedDataPath build/TestData CODE_SIGNING_ALLOWED=NO test
+      - name: Build, sign if configured, notarize, package and verify
+        id: package
+        env:
+          PACKAGE_VERSION: ${{ steps.version.outputs.version }}
+          BUILD_NUMBER: ${{ github.run_number }}
+          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          DEVELOPER_ID_IDENTITY: ${{ secrets.DEVELOPER_ID_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: ./scripts/build-dmg.sh "$PACKAGE_VERSION"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: LiteShelf-package
+          path: |
+            build/dist/*.dmg
+            build/dist/*.sha256
+          if-no-files-found: error
+          retention-days: 14
+  publish:
+    # This is the only job with write permission; dispatch builds cannot enter it.
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: LiteShelf-package
+          path: dist
+      - name: Publish a new release without overwriting existing releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          VERSION: ${{ needs.package.outputs.version }}
+          NOTARIZED: ${{ needs.package.outputs.notarized }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo 'error: This release already exists; refusing to overwrite it.' >&2; exit 1
+          fi
+          cd dist
+          sha256sum -c *.sha256
+          if [[ "$NOTARIZED" == true ]]; then
+            printf '%s\n' 'Developer ID signed, Apple notarized and stapled (app and DMG).' > notes.md
+            gh release create "$RELEASE_TAG" ./*.dmg ./*.sha256 --verify-tag \
+              --draft --title "LiteShelf $RELEASE_TAG" --generate-notes --notes-file notes.md
+            gh release edit "$RELEASE_TAG" --draft=false
+          else
+            printf '%s\n' 'UNNOTARIZED TEST BUILD. Ad-hoc signed only. No Apple notarization. macOS may block opening; see the README for Apple’s official security guidance.' > notes.md
+            gh release create "$RELEASE_TAG" ./*.dmg ./*.sha256 --verify-tag --prerelease --latest=false \
+              --draft --title "LiteShelf $RELEASE_TAG — Unnotarized Test Build" --generate-notes --notes-file notes.md
+            gh release edit "$RELEASE_TAG" --draft=false --prerelease --latest=false
+          fi

@@ -1,0 +1,24 @@
+.DS_Store
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.dmg
+*.dmg.sha256
+*.app
+*.dSYM/
+*.xcresult/
+*.xcarchive/
+*.p12
+*.pfx
+*.pem
+*.key
+*.mobileprovision
+.env
+.env.*
+*.log
+# Never commit personal game libraries or resources.
+Games/
+Library.json
