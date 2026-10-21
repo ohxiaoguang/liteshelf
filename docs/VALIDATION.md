@@ -1,8 +1,8 @@
 # Validation / 验收记录
 
-Date: 2026-10-21 (Asia/Shanghai). All results below are local, not GitHub-hosted execution.
+Initial local validation: 2026-10-21 (Asia/Shanghai). Subsequent GitHub-hosted validation is recorded in the follow-up at the end.
 
-日期：2026-10-21（亚洲/上海）。以下结果均为本地验证，不代表 GitHub 托管环境运行结果。
+初次本地验证日期：2026-10-21（亚洲/上海）。后续 GitHub 托管验证结果记录在文末补充部分。
 
 ## Environment / 环境
 
@@ -54,13 +54,23 @@ Build artifacts, XCTest reports and disposable test fixtures are excluded by `.g
 - Launching the user's actual games from the T7, game compatibility, signatures or game-specific Gatekeeper prompts. The actual launch smoke test used a disposable native app on local storage.
 - macOS 14–26 runtime behavior, a separate M1 machine, large real game libraries, or measured startup/CPU/memory benchmarks. macOS 14 is the deployment target, not a claim of testing every supported OS.
 - Real Developer ID signing, Apple notary submission/stapling, and first launch of a browser-downloaded quarantined DMG. No certificate or Apple credentials were provided. The delivered package must not be described as notarized.
-- GitHub-hosted CI, tag-triggered publishing, uploading Release Assets and a manual dispatch run. No remote repository, push or public Release was created. YAML parsing is not an end-to-end workflow run.
+- Manual workflow dispatch remains untested. Hosted CI and tag-triggered publication are now verified; see the follow-up below.
 - Full visual QA for dark mode and every error/permission state. Chinese controls and menus were verified through the real UI; background-window thumbnail captures were discarded, so a publishable Chinese screenshot remains to be added.
 
-尚未验证：真实 T7 拔插及挂载路径变化、用户实际游戏、其他系统版本与独立 M1 设备、大规模性能、真实 Developer ID／Apple 公证及下载隔离行为、GitHub 托管工作流／Tag 发布／资产上传、完整深色与异常状态视觉验收。中文界面和原生菜单已实际检查，但丢弃了后台缩略截图，尚待补充可发布的中文截图。未创建远程仓库、推送代码或发布正式版本。
+尚未验证：真实 T7 拔插及挂载路径变化、用户实际游戏、其他系统版本与独立 M1 设备、大规模性能、真实 Developer ID／Apple 公证及下载隔离行为、手动触发工作流、完整深色与异常状态视觉验收。中文界面和原生菜单已实际检查，但丢弃了后台缩略截图，尚待补充可发布的中文截图。GitHub 托管 CI、Tag 发布及资产上传已完成后续验证，见下文。
 
 ## Local diagnostic notes / 本地诊断说明
 
 The first sandboxed build could not start SwiftUI compiler plugins. Approved Xcode invocations outside that sandbox built and tested successfully. The compiler reported no remaining Swift source warnings in the final build; Xcode emitted a benign AppIntents extraction notice because this app has no AppIntents dependency. The host also logged unrelated system Shortcut/linkd connection diagnostics while XCTest passed. macOS 27 warns that `hdiutil create` is deprecated; it still successfully produced and verified the DMG, and is retained for compatibility with older build hosts.
 
-初次受限构建无法启动 SwiftUI 编译插件，使用获准的 Xcode 调用后构建测试通过。最终构建无 Swift 源码警告；无 AppIntents 依赖的元数据提取提示及测试时的系统 linkd 日志不影响结果。macOS 27 对 `hdiutil create` 给出弃用提示，但镜像生成及校验成功，为兼容较早构建环境仍使用该工具。
+初次受限构建无法启动 SwiftUI 编译插件，使用获准的 Xcode 调用后构建测试通过。最终构建无 Swift 源码警告；无 AppIntents 依赖的元数据提取提示及测试时的系统 linkd 日志不影响结果。本地最初可使用旧 `hdiutil create` 命令；托管环境的后续修复见下文。
+
+## Hosted release follow-up / 托管发布补充验证
+
+The v1.0.0 workflow passed tests and compilation but failed in the deprecated `hdiutil create` folder-image entry point with ENOENT. Explicit HFS+ alone did not fix the hosted failure. Version 1.0.1 uses macOS 27's supported `diskutil image create from` command, while older hosts retain the explicit HFS+ path. The local 1.0.1 DMG passed checksum verification and read-only mount checks for its app signature, version and Applications symlink.
+
+- [Hosted CI](https://github.com/ohxiaoguang/liteshelf/actions/runs/39629629307): tests, Release build and DMG smoke test passed.
+- [v1.0.1 Release workflow](https://github.com/ohxiaoguang/liteshelf/actions/runs/39630153835): both package and publish jobs passed, including asset upload and checksum verification.
+- [v1.0.1 download](https://github.com/ohxiaoguang/liteshelf/releases/tag/v1.0.1): explicitly marked as an **unnotarized prerelease**. No Developer ID or Apple notarization is claimed. The failed v1.0.0 tag was preserved.
+
+v1.0.0 在测试与编译通过后，于旧 `hdiutil create` 目录镜像入口报 ENOENT。仅指定 HFS+ 未能修复托管环境问题。v1.0.1 在 macOS 27 改用 `diskutil image create from`，旧系统保留显式 HFS+ 路径；本地镜像已完成校验与挂载检查。上述 GitHub CI 和 Release 的打包、上传、校验及发布任务均已通过。下载包明确标为未公证预发布版，原失败标签 v1.0.0 保留不变。

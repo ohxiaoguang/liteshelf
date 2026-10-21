@@ -35,7 +35,7 @@ macOS 27 上实际运行的英文空游戏库界面（中文界面及原生菜�
 
 ## 下载与安装
 
-通过 [最新稳定版本](https://github.com/ohxiaoguang/liteshelf/releases/latest) 或 [全部版本及测试构建](https://github.com/ohxiaoguang/liteshelf/releases) 下载。目前尚未发布安装包，源码位于 [ohxiaoguang/liteshelf](https://github.com/ohxiaoguang/liteshelf)。
+当前可下载 [v1.0.1 未公证测试版](https://github.com/ohxiaoguang/liteshelf/releases/tag/v1.0.1)，或浏览 [全部版本及测试构建](https://github.com/ohxiaoguang/liteshelf/releases)。[最新稳定版本](https://github.com/ohxiaoguang/liteshelf/releases/latest) 链接将在正式稳定版发布后可用。源码位于 [ohxiaoguang/liteshelf](https://github.com/ohxiaoguang/liteshelf)。
 
 1. 选择 `LiteShelf-版本号-macOS-arm64.dmg`。文件名以 `-unnotarized.dmg` 结尾的为测试构建。
 2. 可选校验：在下载目录执行 `shasum -a 256 -c LiteShelf-版本号-macOS-arm64.dmg.sha256`，请使用实际文件名。

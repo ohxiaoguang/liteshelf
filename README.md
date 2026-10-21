@@ -35,7 +35,7 @@ See [capture notes](docs/screenshots/README.md). No game artwork or fabricated s
 
 ## Installation
 
-Download from [Latest stable release](https://github.com/ohxiaoguang/liteshelf/releases/latest), or [All releases and test builds](https://github.com/ohxiaoguang/liteshelf/releases). A release package has not yet been published; source code is available in [ohxiaoguang/liteshelf](https://github.com/ohxiaoguang/liteshelf).
+Download the current [v1.0.1 unnotarized test build](https://github.com/ohxiaoguang/liteshelf/releases/tag/v1.0.1), or browse [All releases and test builds](https://github.com/ohxiaoguang/liteshelf/releases). The [Latest stable release](https://github.com/ohxiaoguang/liteshelf/releases/latest) link will become available after a stable release is published. Source code is available in [ohxiaoguang/liteshelf](https://github.com/ohxiaoguang/liteshelf).
 
 1. Choose `LiteShelf-VERSION-macOS-arm64.dmg`. Files ending in `-unnotarized.dmg` are test builds.
 2. Optionally verify the checksum: in the download directory, run `shasum -a 256 -c LiteShelf-VERSION-macOS-arm64.dmg.sha256` (use the actual filename).
