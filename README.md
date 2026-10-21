@@ -81,7 +81,7 @@ Build, verify and package a standalone ad-hoc-signed ARM64 app:
 ./scripts/build-dmg.sh 1.0.0
 ```
 
-Output: `build/dist/LiteShelf-1.0.0-macOS-arm64-unnotarized.dmg` and `.dmg.sha256`. The DMG includes LiteShelf.app, an Applications symlink, and an unnotarized-build notice. Run from a clean output directory, or set `OUTPUT_DIR` to a new directory; the script refuses to overwrite packages. `DERIVED_DATA` and `BUILD_NUMBER` can also be set. No generators or package managers are required. The icon PNGs are committed; `scripts/generate-icon.swift` is an optional native icon source.
+Output: `build/dist/LiteShelf-1.0.0-macOS-arm64-unnotarized.dmg` and `.dmg.sha256`. The DMG includes LiteShelf.app, an Applications symlink, and an unnotarized-build notice. Run from a clean output directory, or set `OUTPUT_DIR` to a new directory; the script refuses to overwrite packages. `DERIVED_DATA` and `BUILD_NUMBER` can also be set. On macOS 27, packaging uses `diskutil image create from`; older hosts use `hdiutil` with an explicit HFS+ filesystem. No generators or package managers are required. The icon PNGs are committed; `scripts/generate-icon.swift` is an optional native icon source.
 
 Run tests:
 

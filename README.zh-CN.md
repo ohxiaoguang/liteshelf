@@ -81,7 +81,7 @@ open build/DerivedData/Build/Products/Release/LiteShelf.app
 ./scripts/build-dmg.sh 1.0.0
 ```
 
-产物为 `build/dist/LiteShelf-1.0.0-macOS-arm64-unnotarized.dmg` 及 `.dmg.sha256`。DMG 内含 LiteShelf.app、Applications 快捷入口，以及未公证测试版说明。请使用干净的输出目录，或通过 `OUTPUT_DIR` 指定新目录；脚本会拒绝覆盖现有安装包。还可设置 `DERIVED_DATA` 与 `BUILD_NUMBER`。无需工程生成器或包管理器。图标 PNG 已包含在源码中，`scripts/generate-icon.swift` 为可选的原生图标生成源码。
+产物为 `build/dist/LiteShelf-1.0.0-macOS-arm64-unnotarized.dmg` 及 `.dmg.sha256`。DMG 内含 LiteShelf.app、Applications 快捷入口，以及未公证测试版说明。请使用干净的输出目录，或通过 `OUTPUT_DIR` 指定新目录；脚本会拒绝覆盖现有安装包。还可设置 `DERIVED_DATA` 与 `BUILD_NUMBER`。macOS 27 使用 `diskutil image create from` 打包，较早系统使用显式指定 HFS+ 的 `hdiutil`。无需工程生成器或包管理器。图标 PNG 已包含在源码中，`scripts/generate-icon.swift` 为可选的原生图标生成源码。
 
 运行测试：
 
