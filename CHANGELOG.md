@@ -1,6 +1,10 @@
 # Changelog
 
-## 1.0.0 — Unreleased
+## 1.0.1
+
+- Explicitly use HFS+ for distribution DMGs to avoid the hosted macOS 27 runner’s default folder-image creation failure.
+
+## 1.0.0
 
 - Native SwiftUI icon grid, search, keyboard launch and Finder integration.
 - Recursive discovery restricted to user-selected game folders.
