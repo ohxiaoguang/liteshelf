@@ -2,7 +2,7 @@
 
 ## 1.0.1
 
-- Explicitly use HFS+ for distribution DMGs to avoid the hosted macOS 27 runner’s default folder-image creation failure.
+- Use the native `diskutil image create from` command on macOS 27 for DMG packaging; retain explicit HFS+ creation on older hosts.
 
 ## 1.0.0
 

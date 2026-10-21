@@ -71,9 +71,15 @@ if $signed; then
   xcrun stapler staple "$staged"
   xcrun stapler validate "$staged"
 fi
-# Specify HFS+ explicitly: APFS folder-image creation failed on the hosted macOS 27 runner.
-# HFS+ preserves macOS bundles and symlinks and is readable on every supported macOS version.
-hdiutil create -volname LiteShelf -fs HFS+ -srcfolder "$work/stage" -ov -format UDZO "$work/package.dmg"
+# macOS 27 deprecated hdiutil's folder-image creation entry point. Use its native
+# replacement there; retain the explicit HFS+ path for older build hosts.
+os_version=$(sw_vers -productVersion)
+os_major=${os_version%%.*}
+if (( os_major >= 27 )); then
+  diskutil image create from --volumeName LiteShelf --format UDZO "$work/stage" "$work/package.dmg"
+else
+  hdiutil create -volname LiteShelf -fs HFS+ -srcfolder "$work/stage" -ov -format UDZO "$work/package.dmg"
+fi
 if $signed; then
   codesign --timestamp --keychain "$keychain" --sign "$DEVELOPER_ID_IDENTITY" "$work/package.dmg"
   xcrun notarytool submit "$work/package.dmg" --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" \
